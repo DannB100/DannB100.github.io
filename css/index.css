@@ -4179,6 +4179,15 @@ figure.highlight pre .javascript .function {
     transform: scale(0.7);
   }
 }
+#chatra:not(.chatra--expanded) {
+  visibility: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)" !important;
+  filter: alpha(opacity=0) !important;
+  pointer-events: none;
+}
 #post-comment .comment-head {
   margin-bottom: 20px;
 }
@@ -5696,7 +5705,7 @@ figure.highlight pre .javascript .function {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 9999;
+  z-index: 100;
   pointer-events: none;
 }
 .medium-zoom-image--opened {
