@@ -4,12 +4,12 @@
 
 # Site
 title: 一颗爱喝豆浆的黄豆BLOG
-subtitle: ''
-description: ''
+subtitle: '人生不停，追番不止'
+description: '记录博主的学习和生活点滴，分享一些有趣的东西。'
 keywords:
 author: dannb100
-language: en
-timezone: ''
+language: zh-CN
+timezone: 'Asia/Shanghai'
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
