@@ -673,12 +673,12 @@ artalk:
 chat:
   # Choose: chatra/tidio/crisp
   # Leave it empty if you don't need chat
-  use:
+  use: chatra
   # Chat Button [recommend]
   # It will create a button in the bottom right corner of website, and hide the origin button
-  rightside_button: false
+  rightside_button: true
   # The origin chat button is displayed when scrolling up, and the button is hidden when scrolling down
-  button_hide_show: false
+  button_hide_show: true
 
 # https://chatra.io/
 chatra:
@@ -893,8 +893,8 @@ canvas_nest:
 
 # Mouse click effects: fireworks 点击特效：烟花
 fireworks:
-  enable: false
-  zIndex: 9999
+  enable: true
+  zIndex: 100
   mobile: false
 
 # Mouse click effects: Heart symbol 点击特效：爱心
