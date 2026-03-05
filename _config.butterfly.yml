@@ -19,7 +19,7 @@ nav:
 
 menu:
   Home: / || fas fa-home
-  Bangumi: /bangumi/ || fas fa-tv
+  Bangumis: /bangumis || fas fa-video
   # List||fas fa-list:
   #   Music: /music/ || fas fa-music
   #   Movie: /movies/ || fas fa-video
