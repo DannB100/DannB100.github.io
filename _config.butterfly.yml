@@ -38,7 +38,7 @@ menu:
 code_blocks:
   # Code block theme: darker / pale night / light / ocean / false 代码块主题
   theme: darker
-  macStyle: false  # 是否使用 Mac 风格窗口
+  macStyle: true  # 是否使用 Mac 风格窗口
   # Code block height limit (unit: px) 代码块高度限制（像素）
   height_limit: 230
   word_wrap: false  # 代码是否自动换行
@@ -65,7 +65,7 @@ social:
 favicon: /img/favicon.png  # 网站小图标
 
 avatar:
-  img: /img/butterfly-icon.png  # 头像图片
+  img: public/img/3472f421422b038f6f6c2ca9e70b69ab.jpg  # 头像图片
   effect: false  # 头像特效开关
 
 # Disable all banner images 是否禁用所有横幅图
@@ -894,7 +894,7 @@ canvas_nest:
 # Mouse click effects: fireworks 点击特效：烟花
 fireworks:
   enable: true
-  zIndex: 100
+  zIndex: 10
   mobile: false
 
 # Mouse click effects: Heart symbol 点击特效：爱心
