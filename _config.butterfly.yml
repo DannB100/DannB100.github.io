@@ -164,7 +164,7 @@ subtitle:
   # Typewriter Effect 打字机效果
   effect: true
   # Customize typed.js
-  # https://github.com/mattboldt/typed.js/#customization
+  # https://github.com/htboldt/typed.js/#customization
   typed_option:
   # Source - Call the third-party service API (Chinese only)
   # It will show the source first, then show the content of sub
