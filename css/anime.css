@@ -1,0 +1,93 @@
+:root {
+  --theme-color: #8fa7ff;
+  --btn-bg: #8fa7ff;
+  --btn-hover-color: #ff88c2;
+  --text-bg-hover: #ff88c2;
+  --pseudo-hover: #ff88c2;
+  --scrollbar-color: #8fa7ff;
+  --hr-border: #d9e4ff;
+  --hr-before-color: #b6c9ff;
+  --card-bg: rgba(255, 255, 255, 0.82);
+  --sidebar-bg: rgba(255, 255, 255, 0.88);
+  --sidebar-menu-bg: rgba(255, 255, 255, 0.95);
+  --card-box-shadow: 0 10px 26px rgba(143, 167, 255, 0.16);
+  --card-hover-box-shadow: 0 14px 30px rgba(255, 136, 194, 0.2);
+}
+
+#web_bg {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 193, 227, 0.32) 0, rgba(255, 193, 227, 0) 34%),
+    radial-gradient(circle at 88% 12%, rgba(182, 201, 255, 0.32) 0, rgba(182, 201, 255, 0) 36%),
+    linear-gradient(145deg, #fff9fd 0%, #f8f9ff 46%, #f5fbff 100%);
+}
+
+#page-header #site-title,
+#page-header #site-subtitle,
+#page-header #scroll-down .scroll-down-effects,
+#post-info .post-title {
+  text-shadow: 0 3px 18px rgba(143, 167, 255, 0.26);
+}
+
+#nav,
+#page-header.nav-fixed > #nav {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.65);
+  border-bottom: 1px solid rgba(143, 167, 255, 0.18);
+}
+
+#recent-posts > .recent-post-item,
+#aside-content .card-widget,
+div#post,
+div#archive,
+div#page {
+  border: 1px solid rgba(143, 167, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+#recent-posts > .recent-post-item {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+#recent-posts > .recent-post-item:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 136, 194, 0.38);
+}
+
+a:hover {
+  color: #ff88c2;
+}
+
+#rightside > div > button,
+#rightside > div > a {
+  border-radius: 12px;
+}
+
+[data-theme='dark'] {
+  --theme-color: #9fb3ff;
+  --btn-bg: #9fb3ff;
+  --btn-hover-color: #ff9bcc;
+  --text-bg-hover: #ff9bcc;
+  --pseudo-hover: #ff9bcc;
+  --global-bg: #141827;
+  --card-bg: rgba(25, 31, 50, 0.9);
+  --sidebar-bg: rgba(25, 31, 50, 0.92);
+  --sidebar-menu-bg: rgba(30, 36, 56, 0.95);
+  --font-color: rgba(243, 245, 255, 0.88);
+  --card-box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
+  --card-hover-box-shadow: 0 12px 34px rgba(159, 179, 255, 0.2);
+}
+
+[data-theme='dark'] #web_bg {
+  background:
+    radial-gradient(circle at 10% 16%, rgba(255, 155, 204, 0.16) 0, rgba(255, 155, 204, 0) 34%),
+    radial-gradient(circle at 86% 12%, rgba(159, 179, 255, 0.22) 0, rgba(159, 179, 255, 0) 38%),
+    linear-gradient(145deg, #161a2a 0%, #121829 48%, #101520 100%);
+}
+
+[data-theme='dark'] #nav,
+[data-theme='dark'] #page-header.nav-fixed > #nav {
+  background: rgba(20, 24, 39, 0.72);
+  border-bottom: 1px solid rgba(159, 179, 255, 0.22);
+}
