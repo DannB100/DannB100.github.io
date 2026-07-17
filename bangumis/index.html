@@ -1,48 +1,89 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>一颗爱喝豆浆的黄豆BLOG - 人生不停，追番不止</title><meta name="author" content="dannb100"><meta name="copyright" content="dannb100"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="      生命不息，追番不止        .bangumi-tabs{margin-bottom:15px;margin-top:15px}.bangumi-tab{padding:5px}a.bangumi-tab{text-decoration:none}.bangumi-active..."><script type="application/ld+json"></script><link rel="shortcut icon" href="/"><link rel="canonical" href="https://dannb100.github.io/bangumis/index.html"><link rel="preconnect" href="//cdnjs.cloudflare.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.2.0/css/all.min.css"><script>
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>一颗爱喝豆浆的黄豆BLOG - 人生不停，追番不止</title><meta name="author" content="dannb100"><meta name="copyright" content="dannb100"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="      生命不息，追番不止        .bangumi-tabs{margin-bottom:15px;margin-top:15px}.bangumi-tab{padding:5px}a.bangumi-tab{text-decoration:none}.bangumi-active..."><script type="application/ld+json"></script><link rel="shortcut icon" href="/"><link rel="canonical" href="https://dannb100.github.io/bangumis/index.html"><link rel="preconnect" href="//cdnjs.cloudflare.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css"><script>
     (() => {
       
     const saveToLocal = {
       set: (key, value, ttl) => {
-        if (!ttl) return
-        const expiry = Date.now() + ttl * 86400000
-        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+        const data = { value }
+
+        if (ttl != null) {
+          data.expiry = Date.now() + ttl * 86400000
+        }
+
+        localStorage.setItem(key, JSON.stringify(data))
       },
       get: key => {
         const itemStr = localStorage.getItem(key)
-        if (!itemStr) return undefined
-        const { value, expiry } = JSON.parse(itemStr)
-        if (Date.now() > expiry) {
+        if (!itemStr) return
+
+        try {
+          const data = JSON.parse(itemStr)
+
+          if (data.expiry && Date.now() > data.expiry) {
+            localStorage.removeItem(key)
+            return
+          }
+
+          return data.value
+        } catch {
           localStorage.removeItem(key)
-          return undefined
         }
-        return value
       }
     }
 
+    const scriptCache = new Map()
+    const cssCache = new Map()
     window.btf = {
       saveToLocal,
-      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
-        const script = document.createElement('script')
-        script.src = url
-        script.async = true
-        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
-        script.onload = script.onreadystatechange = () => {
-          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+      getScript: (url, attr = {}) => {
+        if (scriptCache.has(url)) {
+          return scriptCache.get(url)
         }
-        script.onerror = reject
-        document.head.appendChild(script)
-      }),
-      getCSS: (url, id) => new Promise((resolve, reject) => {
-        const link = document.createElement('link')
-        link.rel = 'stylesheet'
-        link.href = url
-        if (id) link.id = id
-        link.onload = link.onreadystatechange = () => {
-          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+
+          script.src = url
+          script.async = true
+
+          for (const key in attr) {
+            script.setAttribute(key, attr[key])
+          }
+
+          script.onload = resolve
+          script.onerror = reject
+
+          document.head.appendChild(script)
+        })
+
+        scriptCache.set(url, promise)
+
+        return promise
+      },
+      getCSS: (url, id) => {
+        if (cssCache.has(url)) {
+          return cssCache.get(url)
         }
-        link.onerror = reject
-        document.head.appendChild(link)
-      }),
+
+        const promise = new Promise((resolve, reject) => {
+          const link = document.createElement('link')
+
+          link.rel = 'stylesheet'
+          link.href = url
+
+          if (id) {
+            link.id = id
+          }
+
+          link.onload = resolve
+          link.onerror = reject
+
+          document.head.appendChild(link)
+        })
+
+        cssCache.set(url, promise)
+
+        return promise
+      },
       addGlobalFn: (key, fn, name = false, parent = window) => {
         if (!true && key.startsWith('pjax')) return
         const globalFn = parent.globalFn || {}
@@ -53,16 +94,17 @@
     }
   
       
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]')
       const activateDarkMode = () => {
-        document.documentElement.setAttribute('data-theme', 'dark')
-        if (document.querySelector('meta[name="theme-color"]') !== null) {
-          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        document.documentElement.dataset.theme = 'dark'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', '#0d0d0d')
         }
       }
       const activateLightMode = () => {
-        document.documentElement.setAttribute('data-theme', 'light')
-        if (document.querySelector('meta[name="theme-color"]') !== null) {
-          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        document.documentElement.dataset.theme = 'light'
+        if (metaThemeColor !== null) {
+          metaThemeColor.setAttribute('content', 'ffffff')
         }
       }
 
@@ -72,7 +114,12 @@
       const theme = saveToLocal.get('theme')
     
           const hour = new Date().getHours()
-          const isNight = hour <= 6 || hour >= 18
+          const start = 6
+          const end = 18
+          const isNight =
+            start < end
+                ? hour < start || hour >= end
+                : hour >= start || hour < end
           if (theme === undefined) isNight ? activateDarkMode() : activateLightMode()
           else theme === 'light' ? activateLightMode() : activateDarkMode()
         
@@ -181,7 +228,7 @@
         (1)</a>
     <a class="bangumi-tab" id="bangumi-tab3" href="javascript:;" rel="external" target="_self" onclick="return false">
         已看
-        (49)</a>
+        (57)</a>
 </div>
 <div>
     <div id="bangumi-item1">
@@ -208,7 +255,7 @@
                     <span class="bangumi-info-label">类型</span> <em>动画</em>
                 </span>
                 <span class="bangumi-info-item bangumi-wish">
-                    <span class="bangumi-info-label">想看</span> <em>336</em>
+                    <span class="bangumi-info-label">想看</span> <em>337</em>
                 </span>
                 <span class="bangumi-info-item bangumi-doing">
                     <span class="bangumi-info-label">在看</span> <em>18</em>
@@ -288,7 +335,7 @@
                     <span class="bangumi-info-label">类型</span> <em>动画</em>
                 </span>
                 <span class="bangumi-info-item bangumi-wish">
-                    <span class="bangumi-info-label">想看</span> <em>2588</em>
+                    <span class="bangumi-info-label">想看</span> <em>2590</em>
                 </span>
                 <span class="bangumi-info-item bangumi-doing">
                     <span class="bangumi-info-label">在看</span> <em>84</em>
@@ -370,7 +417,7 @@
                     <span class="bangumi-info-label">类型</span> <em>动画</em>
                 </span>
                 <span class="bangumi-info-item bangumi-wish">
-                    <span class="bangumi-info-label">想看</span> <em>1944</em>
+                    <span class="bangumi-info-label">想看</span> <em>1947</em>
                 </span>
                 <span class="bangumi-info-item bangumi-doing">
                     <span class="bangumi-info-label">在看</span> <em>43</em>
@@ -397,6 +444,199 @@
 </div>
     </div>
     <div id="bangumi-item2">
+        
+        <div class="bangumi-item">
+    <div class="bangumi-picture">
+        
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/bangumis/loading.gif" data-src="/images/bangumis/1f/9e/501963_bXlEP.jpg" referrerPolicy="no-referrer" width="110" style="width:110px;margin:20px auto;" />
+        
+    </div>
+    <div class="bangumi-info">
+        <div class="bangumi-title">
+            <a target="_blank" href="https://bangumi.tv/subject/501963">无职转生 第三季 ～到了异世界就拿出真本事～</a>
+        </div>
+        <div class="bangumi-meta">
+            <span class="bangumi-info-items" style="color:#555">
+                <span class="bangumi-info-item" style="color:#555">
+                
+                <span class="bangumi-info-total">共14话</span><em
+                    class="bangumi-info-label-em">0</em>
+                </span>
+                
+                <span class="bangumi-info-item bangumi-type">
+                    <span class="bangumi-info-label">类型</span> <em>动画</em>
+                </span>
+                <span class="bangumi-info-item bangumi-wish">
+                    <span class="bangumi-info-label">想看</span> <em>4925</em>
+                </span>
+                <span class="bangumi-info-item bangumi-doing">
+                    <span class="bangumi-info-label">在看</span> <em>9908</em>
+                </span>
+                <span class="bangumi-info-item bangumi-collect">
+                    <span class="bangumi-info-label">已看</span> <em>838</em>
+                </span>
+                <span class="bangumi-info-item bangumi-info-item-score">
+                    <span class="bangumi-info-label">评分</span> <em>8</em>
+                </span>
+            </span>
+        </div>
+        <div class="bangumi-comments" ><p>简介：「俺は、この異世界で本気だす！」
+34歳・童貞・無職の引きこもりニート男。
+両親の葬儀の日に家を追い出された瞬間、トラックに轢かれ命を落としてしまう。
+目覚めると、なんと剣と魔法の異世界で赤ん坊に生まれ変わっていた！
+ゴミクズのように生きてきた男は、少年・ルーデウスとして異世界で本気をだして生きていく事を誓うー！
+ルーデウスを待ち受けるのは、ロリっ子魔術師、エルフ耳のボクっ子幼馴染、凶暴ツンデレお嬢様、
+そのほかの様々な人間との出会い。そして過酷な冒険と戦い。
+新しい人生が動き出す！
+「人生やり直し」ファンタジー、開幕！</p> </div>
+    </div>
+</div>
+
+        
+        <div class="bangumi-pagination">
+    <a class="bangumi-button bangumi-firstpage" href="javascript:;" target="_self" onclick="return false"> 首页</a>
+    <a class="bangumi-button bangumi-previouspage" href="javascript:;" target="_self" onclick="return false">上一页</a>
+    <span class="bangumi-pagenum">2 / 3</span>
+    <a class="bangumi-button bangumi-nextpage" href="javascript:;" target="_self" onclick="return false">下一页</a>
+    <a class="bangumi-button bangumi-lastpage" href="javascript:;" target="_self" onclick="return false">尾页</a>
+</div>
+    </div>
+    <div id="bangumi-item3">
+        
+        <div class="bangumi-item">
+    <div class="bangumi-picture">
+        
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/bangumis/loading.gif" data-src="/images/bangumis/ad/25/444557_e4hPO.jpg" referrerPolicy="no-referrer" width="110" style="width:110px;margin:20px auto;" />
+        
+    </div>
+    <div class="bangumi-info">
+        <div class="bangumi-title">
+            <a target="_blank" href="https://bangumi.tv/subject/444557">无职转生 第二季 ～到了异世界就拿出真本事～ 第2部分</a>
+        </div>
+        <div class="bangumi-meta">
+            <span class="bangumi-info-items" style="color:#555">
+                <span class="bangumi-info-item" style="color:#555">
+                
+                <span class="bangumi-info-total">共12话</span><em
+                    class="bangumi-info-label-em">0</em>
+                </span>
+                
+                <span class="bangumi-info-item bangumi-type">
+                    <span class="bangumi-info-label">类型</span> <em>动画</em>
+                </span>
+                <span class="bangumi-info-item bangumi-wish">
+                    <span class="bangumi-info-label">想看</span> <em>2626</em>
+                </span>
+                <span class="bangumi-info-item bangumi-doing">
+                    <span class="bangumi-info-label">在看</span> <em>2412</em>
+                </span>
+                <span class="bangumi-info-item bangumi-collect">
+                    <span class="bangumi-info-label">已看</span> <em>24060</em>
+                </span>
+                <span class="bangumi-info-item bangumi-info-item-score">
+                    <span class="bangumi-info-label">评分</span> <em>7.6</em>
+                </span>
+            </span>
+        </div>
+        <div class="bangumi-comments" ><p>简介：暂无简介</p> </div>
+    </div>
+</div>
+
+        
+        <div class="bangumi-item">
+    <div class="bangumi-picture">
+        
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/bangumis/loading.gif" data-src="/images/bangumis/cf/55/373247_aBFR1.jpg" referrerPolicy="no-referrer" width="110" style="width:110px;margin:20px auto;" />
+        
+    </div>
+    <div class="bangumi-info">
+        <div class="bangumi-title">
+            <a target="_blank" href="https://bangumi.tv/subject/373247">无职转生 第二季 ～到了异世界就拿出真本事～</a>
+        </div>
+        <div class="bangumi-meta">
+            <span class="bangumi-info-items" style="color:#555">
+                <span class="bangumi-info-item" style="color:#555">
+                
+                <span class="bangumi-info-total">共13话</span><em
+                    class="bangumi-info-label-em">0</em>
+                </span>
+                
+                <span class="bangumi-info-item bangumi-type">
+                    <span class="bangumi-info-label">类型</span> <em>动画</em>
+                </span>
+                <span class="bangumi-info-item bangumi-wish">
+                    <span class="bangumi-info-label">想看</span> <em>3179</em>
+                </span>
+                <span class="bangumi-info-item bangumi-doing">
+                    <span class="bangumi-info-label">在看</span> <em>2633</em>
+                </span>
+                <span class="bangumi-info-item bangumi-collect">
+                    <span class="bangumi-info-label">已看</span> <em>27185</em>
+                </span>
+                <span class="bangumi-info-item bangumi-info-item-score">
+                    <span class="bangumi-info-label">评分</span> <em>7.3</em>
+                </span>
+            </span>
+        </div>
+        <div class="bangumi-comments" ><p>简介：34岁，没工作又足不出户的男人，某天被家人赶出家门时车祸身亡…没想到下个瞬间就转生到剑与魔法的异世界，名为鲁迪乌斯。带着前世记忆的经验与后悔，他发誓这次一定要拿出真本事活下去。遇见各式各样的人，并勤于锻炼魔术而渐渐成长的鲁迪乌斯，因为遭逢在故乡菲托亚领地发生的转移事件，而踏上壮大又艰辛的冒险。在经历各种苦难总算回到故乡的鲁迪乌斯，在与最心爱的艾莉丝结合的隔天早上，就因为她突然的离开而深受打击。一度变得跟前世一样足不出户，就像放弃了一切似的，但他还是抱持决心要找出唯一一个因转移事件分散、至今还下落不明的家人──母亲塞妮丝，并再次向前迈进──
+
+
+
+[简介原文]
+34歳・無職・引きこもりの男は、ある日家族から家を追い出された際に交通事故に遭い死亡…と思った瞬間、剣と魔法の異世界でルーデウスとして転生。前世での経験と後悔を糧に、今度こそ本気で生きていこうと誓う。
+さまざまな人々との出会いや、魔術の鍛錬などで成長していくルーデウスは、故郷フィットア領で発生した転移事件などを機に壮大で過酷な冒険へ。苦難の末に故郷へと戻ったルーデウスは、最愛のエリスと結ばれた翌朝、彼女が突如姿を消したことに打ちひしがれる。前世のようにひきこもり、全てを諦めようとしていたが、転移事件により家族で唯一行方不明のままである母ゼニスを探すという決意を秘め、彼は再び歩み出すのだが</p> </div>
+    </div>
+</div>
+
+        
+        <div class="bangumi-item">
+    <div class="bangumi-picture">
+        
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/bangumis/loading.gif" data-src="/images/bangumis/60/4d/325585_tfU01.jpg" referrerPolicy="no-referrer" width="110" style="width:110px;margin:20px auto;" />
+        
+    </div>
+    <div class="bangumi-info">
+        <div class="bangumi-title">
+            <a target="_blank" href="https://bangumi.tv/subject/325585">无职转生～到了异世界就拿出真本事～ 第2部分</a>
+        </div>
+        <div class="bangumi-meta">
+            <span class="bangumi-info-items" style="color:#555">
+                <span class="bangumi-info-item" style="color:#555">
+                
+                <span class="bangumi-info-total">共12话</span><em
+                    class="bangumi-info-label-em">0</em>
+                </span>
+                
+                <span class="bangumi-info-item bangumi-type">
+                    <span class="bangumi-info-label">类型</span> <em>动画</em>
+                </span>
+                <span class="bangumi-info-item bangumi-wish">
+                    <span class="bangumi-info-label">想看</span> <em>3206</em>
+                </span>
+                <span class="bangumi-info-item bangumi-doing">
+                    <span class="bangumi-info-label">在看</span> <em>2274</em>
+                </span>
+                <span class="bangumi-info-item bangumi-collect">
+                    <span class="bangumi-info-label">已看</span> <em>39861</em>
+                </span>
+                <span class="bangumi-info-item bangumi-info-item-score">
+                    <span class="bangumi-info-label">评分</span> <em>8.3</em>
+                </span>
+            </span>
+        </div>
+        <div class="bangumi-comments" ><p>简介：「俺は、この異世界で本気だす！」
+34歳・童貞・無職の引きこもりニート男。
+両親の葬儀の日に家を追い出された瞬間、トラックに轢かれ命を落としてしまう。
+目覚めると、なんと剣と魔法の異世界で赤ん坊に生まれ変わっていた！
+ゴミクズのように生きてきた男は、少年・ルーデウスとして異世界で本気をだして生きていく事を誓う。
+フィットア領転移事件で魔大陸に転移後、冒険者パーティ「デッドエンド」を結成し、
+魔大陸最南端の港町・ウェンポートに到着したルーデウスたち。
+ルーデウスは「魔界大帝キシリカ」と出会い新たな力を手に入れる。
+魔力災害に巻き込まれた家族や仲間の行方はー。
+「人生やり直し」ファンタジー、再始動！</p> </div>
+    </div>
+</div>
+
         
         <div class="bangumi-item">
     <div class="bangumi-picture">
@@ -441,15 +681,205 @@
 </div>
 
         
-        <div class="bangumi-pagination">
-    <a class="bangumi-button bangumi-firstpage" href="javascript:;" target="_self" onclick="return false"> 首页</a>
-    <a class="bangumi-button bangumi-previouspage" href="javascript:;" target="_self" onclick="return false">上一页</a>
-    <span class="bangumi-pagenum">2 / 3</span>
-    <a class="bangumi-button bangumi-nextpage" href="javascript:;" target="_self" onclick="return false">下一页</a>
-    <a class="bangumi-button bangumi-lastpage" href="javascript:;" target="_self" onclick="return false">尾页</a>
-</div>
+        <div class="bangumi-item">
+    <div class="bangumi-picture">
+        
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/bangumis/loading.gif" data-src="/images/bangumis/ab/e5/460306_s7Y8n.jpg" referrerPolicy="no-referrer" width="110" style="width:110px;margin:20px auto;" />
+        
     </div>
-    <div id="bangumi-item3">
+    <div class="bangumi-info">
+        <div class="bangumi-title">
+            <a target="_blank" href="https://bangumi.tv/subject/460306">青之箱</a>
+        </div>
+        <div class="bangumi-meta">
+            <span class="bangumi-info-items" style="color:#555">
+                <span class="bangumi-info-item" style="color:#555">
+                
+                <span class="bangumi-info-total">共25话</span><em
+                    class="bangumi-info-label-em">0</em>
+                </span>
+                
+                <span class="bangumi-info-item bangumi-type">
+                    <span class="bangumi-info-label">类型</span> <em>动画</em>
+                </span>
+                <span class="bangumi-info-item bangumi-wish">
+                    <span class="bangumi-info-label">想看</span> <em>2793</em>
+                </span>
+                <span class="bangumi-info-item bangumi-doing">
+                    <span class="bangumi-info-label">在看</span> <em>3282</em>
+                </span>
+                <span class="bangumi-info-item bangumi-collect">
+                    <span class="bangumi-info-label">已看</span> <em>7853</em>
+                </span>
+                <span class="bangumi-info-item bangumi-info-item-score">
+                    <span class="bangumi-info-label">评分</span> <em>6.8</em>
+                </span>
+            </span>
+        </div>
+        <div class="bangumi-comments" ><p>简介：每天早上都想见到她——
+
+荣明高中是初高中一体的体育强校。猪股大喜是就读荣明高中的高一学生，也是男子羽毛球社成员。
+大喜喜欢上了每天晨练时见到的高二学姐鹿野千夏。
+千夏是女子篮球社的王牌选手，更是校内外憧憬的校花。
+兼顾着社团活动、恋爱、和学习，大喜忙碌的高中生活拉开了帷幕，突然有一天——
+
+
+[简介原文]
+毎朝一番に会いたい人がいる——
+
+中高一貫のスポーツ強豪校・栄明高校に入学する、男子バドミントン部の一年生・猪股大喜。
+大喜は毎朝、朝練で顔を合わせる一つ上の先輩、鹿野千夏に恋をする。
+千夏は女子バスケットボール部のエースで、校内外問わず人気の高嶺の花。
+部活に恋に勉強に、大喜にとって忙しい高校生活がはじまる、そんなある日――</p> </div>
+    </div>
+</div>
+
+        
+        <div class="bangumi-item">
+    <div class="bangumi-picture">
+        
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/bangumis/loading.gif" data-src="/images/bangumis/0c/08/548818_iLSG6.jpg" referrerPolicy="no-referrer" width="110" style="width:110px;margin:20px auto;" />
+        
+    </div>
+    <div class="bangumi-info">
+        <div class="bangumi-title">
+            <a target="_blank" href="https://bangumi.tv/subject/548818">金牌得主 第二季</a>
+        </div>
+        <div class="bangumi-meta">
+            <span class="bangumi-info-items" style="color:#555">
+                <span class="bangumi-info-item" style="color:#555">
+                
+                <span class="bangumi-info-total">共9话</span><em
+                    class="bangumi-info-label-em">0</em>
+                </span>
+                
+                <span class="bangumi-info-item bangumi-type">
+                    <span class="bangumi-info-label">类型</span> <em>动画</em>
+                </span>
+                <span class="bangumi-info-item bangumi-wish">
+                    <span class="bangumi-info-label">想看</span> <em>3065</em>
+                </span>
+                <span class="bangumi-info-item bangumi-doing">
+                    <span class="bangumi-info-label">在看</span> <em>3016</em>
+                </span>
+                <span class="bangumi-info-item bangumi-collect">
+                    <span class="bangumi-info-label">已看</span> <em>9169</em>
+                </span>
+                <span class="bangumi-info-item bangumi-info-item-score">
+                    <span class="bangumi-info-label">评分</span> <em>7.7</em>
+                </span>
+            </span>
+        </div>
+        <div class="bangumi-comments" ><p>简介：怀揣着各自对花样滑冰的执念和梦想，结束祈与明浦路司以「选手与教练」的身份相遇。
+祈以成为荣耀的「金牌得主」为目标，在名港杯与西日本中小学生大赛中取得名次，通过等级测试后，终于获得了与「天才少女」狼嵜光同级竞技的资格。
+接下来的目标，是决定了全日本锦标赛参赛名额的中部区域大赛。
+在众多新对手的包围中，祈将证明自己才是最耀眼的花滑选手──！
+
+
+
+[简介原文]
+それぞれにフィギュアスケートへの強い夢を抱き、
+「選手とコーチ」として巡り会った結束いのりと明浦路司。
+
+栄光の“メダリスト”を目指すいのりは
+名港杯と西日本小中学生大会で実績を積み、バッジテストを経て、
+ついに「天才少女」狼嵜光と同じランクで競い合う資格を手にする。
+
+次の目標は、全日本選手権への出場をかけた中部ブロック大会。
+
+新たなライバルたちの中で、いのりは自らが一番に輝けることを証明する──！</p> </div>
+    </div>
+</div>
+
+        
+        <div class="bangumi-item">
+    <div class="bangumi-picture">
+        
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/bangumis/loading.gif" data-src="/images/bangumis/ce/3c/430699_hsj90.jpg" referrerPolicy="no-referrer" width="110" style="width:110px;margin:20px auto;" />
+        
+    </div>
+    <div class="bangumi-info">
+        <div class="bangumi-title">
+            <a target="_blank" href="https://bangumi.tv/subject/430699">金牌得主</a>
+        </div>
+        <div class="bangumi-meta">
+            <span class="bangumi-info-items" style="color:#555">
+                <span class="bangumi-info-item" style="color:#555">
+                
+                <span class="bangumi-info-total">共13话</span><em
+                    class="bangumi-info-label-em">0</em>
+                </span>
+                
+                <span class="bangumi-info-item bangumi-type">
+                    <span class="bangumi-info-label">类型</span> <em>动画</em>
+                </span>
+                <span class="bangumi-info-item bangumi-wish">
+                    <span class="bangumi-info-label">想看</span> <em>5124</em>
+                </span>
+                <span class="bangumi-info-item bangumi-doing">
+                    <span class="bangumi-info-label">在看</span> <em>3647</em>
+                </span>
+                <span class="bangumi-info-item bangumi-collect">
+                    <span class="bangumi-info-label">已看</span> <em>19318</em>
+                </span>
+                <span class="bangumi-info-item bangumi-info-item-score">
+                    <span class="bangumi-info-label">评分</span> <em>8</em>
+                </span>
+            </span>
+        </div>
+        <div class="bangumi-comments" ><p>简介：作为滑冰者遭遇挫折的青年·明浦路司遇到了对花样滑冰世界充满憧憬的少女·结束祈。
+在对冰场怀有执念的祈的推动下，司决定亲自担任教练。
+随着祈逐渐展现出自己的才能，司也作为指导者不断成长。
+两人组成搭档，目标是荣耀的“金牌得主”——！</p> </div>
+    </div>
+</div>
+
+        
+        <div class="bangumi-item">
+    <div class="bangumi-picture">
+        
+        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/images/bangumis/loading.gif" data-src="/images/bangumis/7c/01/165829_cwSZV.jpg" referrerPolicy="no-referrer" width="110" style="width:110px;margin:20px auto;" />
+        
+    </div>
+    <div class="bangumi-info">
+        <div class="bangumi-title">
+            <a target="_blank" href="https://bangumi.tv/subject/165829">在下坂本，有何贵干？</a>
+        </div>
+        <div class="bangumi-meta">
+            <span class="bangumi-info-items" style="color:#555">
+                <span class="bangumi-info-item" style="color:#555">
+                
+                <span class="bangumi-info-total">共13话</span><em
+                    class="bangumi-info-label-em">0</em>
+                </span>
+                
+                <span class="bangumi-info-item bangumi-type">
+                    <span class="bangumi-info-label">类型</span> <em>动画</em>
+                </span>
+                <span class="bangumi-info-item bangumi-wish">
+                    <span class="bangumi-info-label">想看</span> <em>1048</em>
+                </span>
+                <span class="bangumi-info-item bangumi-doing">
+                    <span class="bangumi-info-label">在看</span> <em>946</em>
+                </span>
+                <span class="bangumi-info-item bangumi-collect">
+                    <span class="bangumi-info-label">已看</span> <em>23527</em>
+                </span>
+                <span class="bangumi-info-item bangumi-info-item-score">
+                    <span class="bangumi-info-label">评分</span> <em>6.5</em>
+                </span>
+            </span>
+        </div>
+        <div class="bangumi-comments" ><p>简介：酷、很酷、最最酷的高中生登场了！
+本故事是某个很酷，不，是最酷的高中生坂本的校园生活的集锦。
+刚入学不久，就出现一位被全班，不是被全校瞩目的学生。
+他名为坂本。
+一旦与他扯上关系，普通的反复横跳就会升级为秘技“Repetition Side Step”
+他把上级生强加于他的“跑腿活”华丽升格为“尽心尽责的服务”。
+这样炫酷的他，一举手一投足都摄人心魄。</p> </div>
+    </div>
+</div>
+
         
         <div class="bangumi-item">
     <div class="bangumi-picture">
@@ -2623,7 +3053,7 @@ var c=this.id.replace("tab","item"),d=document.getElementById(c);d.classList.rem
 const g=m[b].parentNode.siblings().length;m[b].innerText=`1 / ${0===a(g/10)?1:a(g/10)}`,h[b].click()}})();
 
 </script>
-</div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://tuchuang.voooe.cn/images/2023/01/02/avatar.webp" onerror="this.onerror=null;this.src='/assets/r1.jpg'" alt="avatar"/></div><div class="author-info-name">dannb100</div><div class="author-info-description">记录博主的学习和生活点滴，分享一些有趣的东西。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">1</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/fomalhaut1998"><i></i><span>前往小窝</span></a><div class="card-info-social-icons"><a class="social-icon" href="/assets/QRCode.jpg" target="_blank" title="icon-weixin"><i class="微信" style="color: faa-tada;"></i></a><a class="social-icon" href="https://res.abeim.cn/api/qq/?qq=1174008660" target="_blank" title="icon-QQ"><i class="QQ" style="color: faa-tada;"></i></a><a class="social-icon" href="https://space.bilibili.com/220757832" target="_blank" title="icon-bilibili"><i class="B站" style="color: faa-tada;"></i></a><a class="social-icon" href="mailto:1174008660@qq.com" target="_blank" title="icon-youxiang"><i class="QQ邮箱" style="color: faa-tada;"></i></a><a class="social-icon" href="https://leetcode.cn/u/fomalhaut1998" target="_blank" title="icon-leetcode"><i class="力扣" style="color: faa-tada;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content"><center><b>--- 主域名 ---<br><a target="_blank" rel="noopener" href="https://www.fomal.cc" title="此线路部署于Vercel" class="anno_content"><font color="#5ea6e5">fomal.cc</font></a>&nbsp;|&nbsp;<a target="_blank" rel="noopener" href="https://www.fomal.cn" title="此线路部署于Vercel" class="anno_content"><font color="#5ea6e5">fomal.cn</font></a><br>--- 备用域名 ---<br><a target="_blank" rel="noopener" href="https://netlify.fomal.cc" title="此线路部署于Netlify" class="anno_content"><font color="#5ea6e5">netlify.fomal.cc</font></a><br><a target="_blank" rel="noopener" href="https://cloudflare.fomal.cc" title="此线路部署于Cloudflare" class="anno_content"><font color="#5ea6e5">cloudflare.fomal.cc</font></a><br>--- 网站安卓APP ---<br>🍧<a target="_blank" rel="noopener" href="https://lskypro.acozycotage.net/Fomalhaut/Fomalhaut.apk" title="点这里可以下载网站的安卓APP" class="anno_content"><font color="#5ea6e5">点此下载</font></a>🍧</b></center></div></div><div class="sticky_layout"><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">1</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">2.4k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-07-16T01:53:52.533Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By dannb100</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/instant.page/5.1.0/instantpage.min.js" type="module"></script><script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/vanilla-lazyload/17.3.1/lazyload.iife.min.js"></script><div class="js-pjax"><script>window.typedJSFn = {
+</div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="https://tuchuang.voooe.cn/images/2023/01/02/avatar.webp" onerror="this.onerror=null;this.src='/assets/r1.jpg'" alt="avatar"/></div><div class="author-info-name">dannb100</div><div class="author-info-description">记录博主的学习和生活点滴，分享一些有趣的东西。</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">1</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/fomalhaut1998"><i></i><span>前往小窝</span></a><div class="card-info-social-icons"><a class="social-icon" href="/assets/QRCode.jpg" target="_blank" title="icon-weixin"><i class="微信" style="color: faa-tada;"></i></a><a class="social-icon" href="https://res.abeim.cn/api/qq/?qq=1174008660" target="_blank" title="icon-QQ"><i class="QQ" style="color: faa-tada;"></i></a><a class="social-icon" href="https://space.bilibili.com/220757832" target="_blank" title="icon-bilibili"><i class="B站" style="color: faa-tada;"></i></a><a class="social-icon" href="mailto:1174008660@qq.com" target="_blank" title="icon-youxiang"><i class="QQ邮箱" style="color: faa-tada;"></i></a><a class="social-icon" href="https://leetcode.cn/u/fomalhaut1998" target="_blank" title="icon-leetcode"><i class="力扣" style="color: faa-tada;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content"><center><b>--- 主域名 ---<br><a target="_blank" rel="noopener" href="https://www.fomal.cc" title="此线路部署于Vercel" class="anno_content"><font color="#5ea6e5">fomal.cc</font></a>&nbsp;|&nbsp;<a target="_blank" rel="noopener" href="https://www.fomal.cn" title="此线路部署于Vercel" class="anno_content"><font color="#5ea6e5">fomal.cn</font></a><br>--- 备用域名 ---<br><a target="_blank" rel="noopener" href="https://netlify.fomal.cc" title="此线路部署于Netlify" class="anno_content"><font color="#5ea6e5">netlify.fomal.cc</font></a><br><a target="_blank" rel="noopener" href="https://cloudflare.fomal.cc" title="此线路部署于Cloudflare" class="anno_content"><font color="#5ea6e5">cloudflare.fomal.cc</font></a><br>--- 网站安卓APP ---<br>🍧<a target="_blank" rel="noopener" href="https://lskypro.acozycotage.net/Fomalhaut/Fomalhaut.apk" title="点这里可以下载网站的安卓APP" class="anno_content"><font color="#5ea6e5">点此下载</font></a>🍧</b></center></div></div><div class="sticky_layout"><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">1</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">2.4k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-07-17T01:58:11.454Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2022 - 2026 By dannb100</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/instant.page/5.1.0/instantpage.min.js" type="module"></script><script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/vanilla-lazyload/17.3.1/lazyload.iife.min.js"></script><div class="js-pjax"><script>window.typedJSFn = {
   init: str => {
     window.typed = new Typed('#subtitle', Object.assign({
       strings: str,
@@ -2665,7 +3095,7 @@ const g=m[b].parentNode.siblings().length;m[b].innerText=`1 / ${0===a(g/10)?1:a(
     }
   }
 }
-btf.addGlobalFn('pjaxSendOnce', () => { typed.destroy() }, 'typedDestroy')
+btf.addGlobalFn('pjaxSendOnce', () => { typed && typed.destroy() }, 'typedDestroy')
 </script><script>function subtitleType () {
   typedJSFn.processSubtitle(["Welcome to Fomalhaut🥝のTiny Home!🤣🤣🤣","Hope you have a nice day!🍭🍭🍭"])
 }
@@ -2782,8 +3212,9 @@ typedJSFn.run(subtitleType)</script><script>(() => {
   document.addEventListener('pjax:complete', () => {
     btf.removeGlobalFnEvent('pjaxCompleteOnce')
     document.querySelectorAll('script[data-pjax]').forEach(item => {
+      if (!item.parentNode) return
       const newScript = document.createElement('script')
-      const content = item.text || item.textContent || item.innerHTML || ""
+      const content = item.text || item.textContent || ''
       Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
       newScript.appendChild(document.createTextNode(content))
       item.parentNode.replaceChild(newScript, item)
@@ -2793,10 +3224,13 @@ typedJSFn.run(subtitleType)</script><script>(() => {
   })
 
   document.addEventListener('pjax:error', e => {
-    if (e.request.status === 404) {
+    const responseURL = e.request && e.request.responseURL
+    if (e.request && e.request.status === 404) {
       true
         ? pjax.loadUrl('/404.html')
-        : window.location.href = e.request.responseURL
+        : responseURL && (window.location.href = responseURL)
+    } else if (responseURL) {
+      window.location.href = responseURL
     }
   })
 })</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
